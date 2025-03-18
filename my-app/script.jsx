@@ -276,12 +276,12 @@ const TradingCodeProcessor = () => {
           let idEntry = null;
           const idMatch = line.match(/id\s*=\s*([^,)]+)/);
           if (idMatch) {
-            idEntry = idMatch[1].trim();
+            idEntry = trimAllSpaces(idMatch[1]);
           } else {
-            // Extract third parameter as quantity if it doesn't contain '='
+            // Extract first parameter as id if it doesn't contain '='
             const params = extractParameters(line);
             if (params.length >= 1 && !params[0].includes('=')) {
-              idEntry = params[0].trim();
+              idEntry = trimAllSpaces(params[0]);
             }
           }
           idEntries[i] = idEntry;
@@ -291,12 +291,12 @@ const TradingCodeProcessor = () => {
             let direction = null;
             const directionMatch = line.match(/long\s*=\s*([^,)]+)/);
             if (directionMatch) {
-              direction = directionMatch[1].trim();
+              direction = trimAllSpaces(directionMatch[1]);
             } else {
               // Extract second parameter as direction
               const params = extractParameters(line);
               if (params.length >= 2) {
-                direction = params[1].trim();
+                direction = trimAllSpaces(params[1]);
               }
             }
             directions[i] = direction;
@@ -305,12 +305,12 @@ const TradingCodeProcessor = () => {
             let direction = null;
             const directionMatch = line.match(/direction\s*=\s*([^,)]+)/);
             if (directionMatch) {
-              direction = directionMatch[1].trim();
+              direction = trimAllSpaces(directionMatch[1]);
             } else {
               // Extract second parameter as direction
               const params = extractParameters(line);
               if (params.length >= 2) {
-                direction = params[1].trim();
+                direction = trimAllSpaces(params[1]);
               }
             }
             directions[i] = direction;
@@ -320,12 +320,12 @@ const TradingCodeProcessor = () => {
           let quantity = null;
           const quantityMatch = line.match(/qty\s*=\s*([^,)]+)/);
           if (quantityMatch) {
-            quantity = quantityMatch[1].trim();
+            quantity = trimAllSpaces(quantityMatch[1]);
           } else {
             // Extract third parameter as quantity if it doesn't contain '='
             const params = extractParameters(line);
             if (params.length >= 3 && !params[2].includes('=')) {
-              quantity = params[2].trim();
+              quantity = trimAllSpaces(params[2]);
             }
           }
           quantities[i] = quantity;
@@ -334,12 +334,12 @@ const TradingCodeProcessor = () => {
           let limit = null;
           const limitMatch = line.match(/limit\s*=\s*([^,)]+)/);
           if (limitMatch) {
-            limit = limitMatch[1].trim();
+            limit = trimAllSpaces(limitMatch[1]);
           } else {
             // Extract fourth parameter as limit if it doesn't contain '='
             const params = extractParameters(line);
             if (params.length >= 4 && !params[3].includes('=')) {
-              limit = params[3].trim();
+              limit = trimAllSpaces(params[3]);
             }
           }
           limits[i] = limit;
@@ -348,12 +348,12 @@ const TradingCodeProcessor = () => {
           let stop = null;
           const stopMatch = line.match(/stop\s*=\s*([^,)]+)/);
           if (stopMatch) {
-            stop = stopMatch[1].trim();
+            stop = trimAllSpaces(stopMatch[1]);
           } else {
             // Extract fifth parameter as stop if it doesn't contain '='
             const params = extractParameters(line);
             if (params.length >= 5 && !params[4].includes('=')) {
-              stop = params[4].trim();
+              stop = trimAllSpaces(params[4]);
             }
           }
           stops[i] = stop;
@@ -363,13 +363,13 @@ const TradingCodeProcessor = () => {
             let whenEntry = null;
             const whenMatch = line.match(/when\s*=\s*([^,)]+)/);
             if(whenMatch){
-              whenEntry = whenMatch[1].trim();
+              whenEntry = trimAllSpaces(whenMatch[1]);
             }
             else{
               // Extract ninth parameter as when if it doesn't contain '='
               const params = extractParameters(line);
               if (params.length >= 9 && !params[8].includes('=')){
-                whenEntry = params[8].trim();
+                whenEntry = trimAllSpaces(params[8]);
               }
             }
             whenEntries[i] = whenEntry;
@@ -382,12 +382,12 @@ const TradingCodeProcessor = () => {
           let idExit = null;
           const idMatch = line.match(/id\s*=\s*([^,)]+)/);
           if (idMatch) {
-            idExit = idMatch[1].trim();
+            idExit = trimAllSpaces(idMatch[1]);
           } else {
             // Extract third parameter as quantity if it doesn't contain '='
             const params = extractParameters(line);
             if (params.length >= 1 && !params[0].includes('=')) {
-              idExit = params[0].trim();
+              idExit = trimAllSpaces(params[0]);
             }
           }
           idExits[i] = idExit;
@@ -396,12 +396,12 @@ const TradingCodeProcessor = () => {
           let exitTP = null;
           const profitMatch = line.match(/profit\s*=\s*([^,)]+)/);
           if (profitMatch) {
-            exitTP = profitMatch[1].trim();
+            exitTP = trimAllSpaces(profitMatch[1]);
           } else {
             // Extract fifth parameter as profit if it doesn't contain '='
             const params = extractParameters(line);
             if (params.length >= 5 && !params[4].includes('=')) {
-              exitTP = params[4].trim();
+              exitTP = trimAllSpaces(params[4]);
             }
           }
           exitTPs[i] = exitTP;
@@ -410,12 +410,12 @@ const TradingCodeProcessor = () => {
           let exitLimit = null;
           const limitMatch = line.match(/limit\s*=\s*([^,)]+)/);
           if (limitMatch) {
-            exitLimit = limitMatch[1].trim();
+            exitLimit = trimAllSpaces(limitMatch[1]);
           } else {
             // Extract sixth parameter as limit if it doesn't contain '='
             const params = extractParameters(line);
             if (params.length >= 6 && !params[5].includes('=')) {
-              exitLimit = params[5].trim();
+              exitLimit = trimAllSpaces(params[5]);
             }
           }
           exitLimits[i] = exitLimit;
@@ -424,12 +424,12 @@ const TradingCodeProcessor = () => {
           let exitLoss = null;
           const lossMatch = line.match(/loss\s*=\s*([^,)]+)/);
           if (lossMatch) {
-            exitLoss = lossMatch[1].trim();
+            exitLoss = trimAllSpaces(lossMatch[1]);
           } else {
             // Extract seventh parameter as loss if it doesn't contain '='
             const params = extractParameters(line);
             if (params.length >= 7 && !params[6].includes('=')) {
-              exitLoss = params[6].trim();
+              exitLoss = trimAllSpaces(params[6]);
             }
           }
           exitLosses[i] = exitLoss;
@@ -438,12 +438,12 @@ const TradingCodeProcessor = () => {
           let exitStop = null;
           const stopMatch = line.match(/stop\s*=\s*([^,)]+)/);
           if (stopMatch) {
-            exitStop = stopMatch[1].trim();
+            exitStop = trimAllSpaces(stopMatch[1]);
           } else {
             // Extract eighth parameter as stop if it doesn't contain '='
             const params = extractParameters(line);
             if (params.length >= 8 && !params[7].includes('=')) {
-              exitStop = params[7].trim();
+              exitStop = trimAllSpaces(params[7]);
             }
           }
           exitStops[i] = exitStop;
@@ -452,12 +452,12 @@ const TradingCodeProcessor = () => {
           let exitTrail = null;
           const trailPriceMatch = line.match(/trail_price\s*=\s*([^,)]+)/);
           if (trailPriceMatch) {
-            exitTrail = trailPriceMatch[1].trim();
+            exitTrail = trimAllSpaces(trailPriceMatch[1]);
           } else {
             // Extract ninth parameter as trail_price if it doesn't contain '='
             const params = extractParameters(line);
             if (params.length >= 9 && !params[8].includes('=')) {
-              exitTrail = params[8].trim();
+              exitTrail = trimAllSpaces(params[8]);
             }
           }
           exitTrails[i] = exitTrail;
@@ -466,12 +466,12 @@ const TradingCodeProcessor = () => {
           let trailPoints = null;
           const trailPointsMatch = line.match(/trail_points\s*=\s*([^,)]+)/);
           if (trailPointsMatch) {
-            trailPoints = trailPointsMatch[1].trim();
+            trailPoints = trimAllSpaces(trailPointsMatch[1]);
           } else {
             // Extract tenth parameter as trail_points if it doesn't contain '='
             const params = extractParameters(line);
             if (params.length >= 10 && !params[9].includes('=')) {
-              trailPoints = params[9].trim();
+              trailPoints = trimAllSpaces(params[9]);
             }
           }
           exitTrailPoints[i] = trailPoints;
@@ -480,12 +480,12 @@ const TradingCodeProcessor = () => {
           let trailOffset = null;
           const trailOffsetMatch = line.match(/trail_offset\s*=\s*([^,)]+)/);
           if (trailOffsetMatch) {
-            trailOffset = trailOffsetMatch[1].trim();
+            trailOffset = trimAllSpaces(trailOffsetMatch[1]);
           } else {
             // Extract eleventh parameter as trail_offset if it doesn't contain '='
             const params = extractParameters(line);
             if (params.length >= 11 && !params[10].includes('=')) {
-              trailOffset = params[10].trim();
+              trailOffset = trimAllSpaces(params[10]);
             }
           }
           exitTrailOffsets[i] = trailOffset;
@@ -495,13 +495,13 @@ const TradingCodeProcessor = () => {
             let whenExit = null;
             const whenMatch = line.match(/when\s*=\s*([^,)]+)/);
             if(whenMatch){
-              whenExit = whenMatch[1].trim();
+              whenExit = trimAllSpaces(whenMatch[1]);
             }
             else{
               // Extract ninth parameter as when if it doesn't contain '='
               const params = extractParameters(line);
               if (params.length >= 9 && !params[8].includes('=')){
-                whenExit = params[8].trim();
+                whenExit = trimAllSpaces(params[8]);
               }
             }
             whenExits[i] = whenExit;
@@ -514,12 +514,12 @@ const TradingCodeProcessor = () => {
           let idClose = null;
           const idMatch = line.match(/id\s*=\s*([^,)]+)/);
           if (idMatch) {
-            idClose = idMatch[1].trim();
+            idClose = trimAllSpaces(idMatch[1]);
           } else {
             // Extract third parameter as quantity if it doesn't contain '='
             const params = extractParameters(line);
             if (params.length >= 1 && !params[0].includes('=')) {
-              idClose = params[0].trim();
+              idClose = trimAllSpaces(params[0]);
             }
           }
           idCloses[i] = idClose;
@@ -703,6 +703,10 @@ const TradingCodeProcessor = () => {
       .catch(err => {
         setMessage({ text: 'Failed to copy: ' + err, type: 'error' });
       });
+  };
+
+  const trimAllSpaces = (str) => {
+    return str.trim().replace(/\s+/g, '');
   };
 
   return (
