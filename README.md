@@ -26,13 +26,12 @@ A web application that processes TradingView Pine Script strategy code and adds 
 
 3. Install dependencies
    ```bash
-   cd "my-app"
+   cd my-app
    npm install
    ```
 
 4. Start the development server
    ```bash
-   cd "my-app"
    npm run dev
    ```
 
