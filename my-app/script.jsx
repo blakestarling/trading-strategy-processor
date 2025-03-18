@@ -156,8 +156,8 @@ const TradingCodeProcessor = () => {
         '     "The receiving exchange for your command.", group = "Syntax Builder")',
         'accountName = input.string("", "Account", tooltip = "The alias for the API credentials you want to use for this command.", group = "Syntax Builder")',
         'symbol      = input.string("", "Symbol", tooltip = "The receiving exchange\'s market for your command. If left blank, this will default to the current symbol (ex: BTCUSD)", group = "Syntax Builder")',
-        'quantity    = input.float(5, "Order Size", group = "Syntax Builder", inline = "Order Size", minval = 0, tooltip = "Used only if no quantity is provided in strategy.entry/order parameters. Match this to the strategy order size.")',
-        'unitType    = input.string("% of equity", " ", options = ["% of equity","Contracts","Currency"], group = "Syntax Builder", inline = "Order Size", tooltip = "Match this to the strategy order type.")'
+        'quantity    = input.float(5, "Order Size", group = "Syntax Builder", minval = 0, tooltip = "Used only if no quantity is provided in strategy.entry/order parameters. Match this to the strategy order size.")',
+        'unitType    = input.string("% of equity", " ", options = ["% of equity","Contracts","Currency"], group = "Syntax Builder", tooltip = "Match this to the strategy order type.")'
       );
     } else if (version === 4) {
       codeBlocks.push(
@@ -180,8 +180,8 @@ const TradingCodeProcessor = () => {
         '     "The receiving exchange for your command.", group = "Syntax Builder")',
         'accountName = input("", "Account", input.string, tooltip = "The alias for the API credentials you want to use for this command.", group = "Syntax Builder")',
         'symbol      = input("", "Symbol", input.string, tooltip = "The receiving exchange\'s market for your command. If left blank, this will default to the current symbol (ex: BTCUSD)", group = "Syntax Builder")',
-        'quantity    = input(5, "Order Size", input.integer, group = "Syntax Builder", inline = "Order Size", minval = 0, tooltip = "Used only if no quantity is provided in strategy.entry/order parameters. Match this to the strategy order size.")',
-        'unitType    = input("% of equity", " ", input.string, options = ["% of equity","Contracts","Currency"], group = "Syntax Builder", inline = "Order Size", tooltip = "Match this to the strategy order type.")'
+        'quantity    = input(5, "Order Size", input.integer, group = "Syntax Builder", minval = 0, tooltip = "Used only if no quantity is provided in strategy.entry/order parameters. Match this to the strategy order size.")',
+        'unitType    = input("% of equity", " ", input.string, options = ["% of equity","Contracts","Currency"], group = "Syntax Builder", tooltip = "Match this to the strategy order type.")'
       );
     }
     
