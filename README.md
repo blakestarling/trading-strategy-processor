@@ -22,19 +22,21 @@ A web application that processes TradingView Pine Script strategy code and adds 
    cd trading-strategy-processor
    ```
 
-2. Install dependencies
+2. Open the file folder
+
+3. Install dependencies
    ```bash
    cd "my-app"
    npm install
    ```
 
-3. Start the development server
+4. Start the development server
    ```bash
    cd "my-app"
    npm run dev
    ```
 
-4. Navigate to the local server
+5. Navigate to the local server
 
 ## Usage
 
