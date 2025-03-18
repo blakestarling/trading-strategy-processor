@@ -21,7 +21,7 @@ A web application that processes TradingView Pine Script strategy code and adds 
 
 1. Clone the repository
    ```bash
-   git clone https://github.com/yourusername/trading-strategy-processor.git
+   git clone https://github.com/blakestarling/trading-strategy-processor.git
    cd trading-strategy-processor
    ```
 
@@ -46,10 +46,3 @@ A web application that processes TradingView Pine Script strategy code and adds 
 3. The script must be version 4 or higher
 4. Click "Process Code" to add AutoView alert syntax
 5. Copy the processed code from the output area
-
-## Color Palette
-
-- Orange: rgb(252, 114, 19)
-- Coal: rgb(51, 51, 51)
-- Elephant: rgb(188, 185, 185)
-- White: rgb(255, 255, 255)
