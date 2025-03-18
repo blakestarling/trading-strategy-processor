@@ -33,10 +33,11 @@ A web application that processes TradingView Pine Script strategy code and adds 
 
 3. Start the development server
    ```bash
+   cd my-app
    npm run dev
    ```
 
-4. Open your browser and navigate to `http://localhost:5173`
+4. Navigate to the local server
 
 ## Usage
 
@@ -52,7 +53,3 @@ A web application that processes TradingView Pine Script strategy code and adds 
 - Coal: rgb(51, 51, 51)
 - Elephant: rgb(188, 185, 185)
 - White: rgb(255, 255, 255)
-
-## License
-
-MIT 
