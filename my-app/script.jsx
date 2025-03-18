@@ -140,6 +140,7 @@ const TradingCodeProcessor = () => {
         '// --------------------------',
         '// AutoView alert syntax settings',
         '// --------------------------',
+        'testMode = input.bool(true, "Test Mode", group = "Syntax Builder", tooltip = "Alerts will not place real trades (d=1)")',
         'exchange = input.string("Alpaca", "Exchange",',
         '     ["Alpaca","AlpacaPaper","AscendEX","AscendEXSandbox","AscendEXFutures",',
         '      "Binance","BinanceDelivery","BinanceDeliveryTestnet","BinanceFutures",',
@@ -164,6 +165,7 @@ const TradingCodeProcessor = () => {
         '// --------------------------',
         '// AutoView alert syntax settings',
         '// --------------------------',
+        'testMode = input(true, "Test Mode", group = "Syntax Builder", tooltip = "Alerts will not place real trades (d=1)")',
         'exchange = input("Alpaca", "Exchange", input.string, options =',
         '     ["Alpaca","AlpacaPaper","AscendEX","AscendEXSandbox","AscendEXFutures",',
         '      "Binance","BinanceDelivery","BinanceDeliveryTestnet","BinanceFutures",',
@@ -223,6 +225,13 @@ const TradingCodeProcessor = () => {
         'var string amp = ""',
         'if (barstate.isfirst and (exchange == "OANDA" or exchange == "OANDAPractice" or exchange == "Tradovate" or exchange == "TradovateSim"))',
         '    amp := " & "',
+        '',
+        '',
+        'var string alertMode = "d=1 "',
+        'if (barstate.isfirst and not testMode)',
+        '    alertMode := "d=0 "',
+        '',
+        '',
         '',
         '',
         '// --------------------------',
@@ -554,7 +563,7 @@ const TradingCodeProcessor = () => {
           const limitStr = limit ? ` + amp + " px=" + ${tostringPrefix}(${limit})` : "";
           const stopStr = stop ? ` + amp + " fsl=" + ${tostringPrefix}(${stop})` : "";
           
-          const alertLine = when ? `${indentation}${whenCondition}\n${indentation}    alert("e=" + exchange + " " + account + " " + ${idStr}"s=" + symbol + " " + "${book}" + " " + "${orderType}" + " "${quantityStr} + unit${limitStr}${stopStr})` : `${indentation}alert("e=" + exchange + " " + account + " " + ${idStr}"s=" + symbol + " " + "${book}" + " " + "${orderType}" + " "${quantityStr} + unit${limitStr}${stopStr})`;
+          const alertLine = when ? `${indentation}${whenCondition}\n${indentation}    alert(alertMode + "e=" + exchange + " " + account + " " + ${idStr}"s=" + symbol + " " + "${book}" + " " + "${orderType}" + " "${quantityStr} + unit${limitStr}${stopStr})` : `${indentation}alert(alertMode + "e=" + exchange + " " + account + " " + ${idStr}"s=" + symbol + " " + "${book}" + " " + "${orderType}" + " "${quantityStr} + unit${limitStr}${stopStr})`;
           result.splice(currentIndex + 1, 0, alertLine);
           insertedLines++;
         }
@@ -606,7 +615,7 @@ const TradingCodeProcessor = () => {
           }
           
           if (takeProfit || stopLoss || trailingStopPrice || trailingStopActivation) {
-            const alertLine = when ? `${indentation}${whenCondition}\n${indentation}    alert("e=" + exchange + " " + account + " " + ${idStr}"s=" + symbol${takeProfit}${stopLoss}${trailingStopPrice}${trailingStopActivation})` : `${indentation}alert("e=" + exchange + " " + account + " " + ${idStr}"s=" + symbol${takeProfit}${stopLoss}${trailingStopPrice}${trailingStopActivation})`;
+            const alertLine = when ? `${indentation}${whenCondition}\n${indentation}    alert(alertMode + "e=" + exchange + " " + account + " " + ${idStr}"s=" + symbol${takeProfit}${stopLoss}${trailingStopPrice}${trailingStopActivation})` : `${indentation}alert(alertMode + "e=" + exchange + " " + account + " " + ${idStr}"s=" + symbol${takeProfit}${stopLoss}${trailingStopPrice}${trailingStopActivation})`;
             result.splice(currentIndex + 1, 0, alertLine);
             insertedLines++;
           }
@@ -619,7 +628,7 @@ const TradingCodeProcessor = () => {
 
         const idStr = id ? `"id=" + ${tostringPrefix}(${id}) + " " + ` : "";
         const indentation = getIndentation(line);
-        const alertLine = `${indentation}alert("e=" + exchange + " " + account + " " + ${idStr}"s=" + symbol + " c=position c=order")`;
+        const alertLine = `${indentation}alert(alertMode + "e=" + exchange + " " + account + " " + ${idStr}"s=" + symbol + " c=position c=order")`;
         result.splice(currentIndex + 1, 0, alertLine);
         insertedLines++;
       }
