@@ -158,7 +158,8 @@ const TradingCodeProcessor = () => {
         'accountName = input.string("", "Account", tooltip = "The alias for the API credentials you want to use for this command.", group = "Syntax Builder")',
         'symbol      = input.string("", "Symbol", tooltip = "The receiving exchange\'s market for your command. If left blank, this will default to the current symbol (ex: BTCUSD)", group = "Syntax Builder")',
         'quantity    = input.float(5, "Order Size", group = "Syntax Builder", minval = 0, tooltip = "Used only if no quantity is provided in strategy.entry/order parameters. Match this to the strategy order size.")',
-        'unitType    = input.string("% of equity", "Unit Type", options = ["% of equity","Contracts","Currency"], group = "Syntax Builder", tooltip = "Match this to the strategy order type.")'
+        'unitType    = input.string("% of equity", "Unit Type", options = ["% of equity","Contracts","Currency"], group = "Syntax Builder", tooltip = "Match this to the strategy order type.")',
+        'pyramiding  = input.integer(1, "Pyramiding", minval = 1, group = "Syntax Builder", tooltip = "Number of concurrent positions allowed. Match this to the strategy order type.")'
       );
     } else if (version === 4) {
       codeBlocks.push(
@@ -183,7 +184,8 @@ const TradingCodeProcessor = () => {
         'accountName = input("", "Account", input.string, tooltip = "The alias for the API credentials you want to use for this command.", group = "Syntax Builder")',
         'symbol      = input("", "Symbol", input.string, tooltip = "The receiving exchange\'s market for your command. If left blank, this will default to the current symbol (ex: BTCUSD)", group = "Syntax Builder")',
         'quantity    = input(5, "Order Size", input.integer, group = "Syntax Builder", minval = 0, tooltip = "Used only if no quantity is provided in strategy.entry/order parameters. Match this to the strategy order size.")',
-        'unitType    = input("% of equity", "Unit Type", input.string, options = ["% of equity","Contracts","Currency"], group = "Syntax Builder", tooltip = "Match this to the strategy order type.")'
+        'unitType    = input("% of equity", "Unit Type", input.string, options = ["% of equity","Contracts","Currency"], group = "Syntax Builder", tooltip = "Match this to the strategy order type.")',
+        'pyramiding  = input(1, "Pyramiding", input.integer, minval = 1, group = "Syntax Builder", tooltip = "Number of concurrent positions allowed. Match this to the strategy order type.")'
       );
     }
     
@@ -546,7 +548,7 @@ const TradingCodeProcessor = () => {
         const stop = stops[i];
         const when = whenEntries[i];
         
-        const whenCondition = when ? `if ${when}` : "";
+        const whenCondition = when ? `if strategy.opentrades < pyramiding ${when}` : "if strategy.opentrades < pyramiding";
         
         if (direction) {
           // Determine book value based on direction
@@ -563,7 +565,7 @@ const TradingCodeProcessor = () => {
           const limitStr = limit ? ` + amp + " px=" + ${tostringPrefix}(${limit})` : "";
           const stopStr = stop ? ` + amp + " fsl=" + ${tostringPrefix}(${stop})` : "";
           
-          const alertLine = when ? `${indentation}${whenCondition}\n${indentation}    alert(alertMode + "e=" + exchange + " " + account + " " + ${idStr}"s=" + symbol + " " + "${book}" + " " + "${orderType}" + " "${quantityStr} + unit${limitStr}${stopStr})` : `${indentation}alert(alertMode + "e=" + exchange + " " + account + " " + ${idStr}"s=" + symbol + " " + "${book}" + " " + "${orderType}" + " "${quantityStr} + unit${limitStr}${stopStr})`;
+          const alertLine = `${indentation}${whenCondition}\n${indentation}    alert(alertMode + "e=" + exchange + " " + account + " " + ${idStr}"s=" + symbol + " " + "${book}" + " " + "${orderType}" + " "${quantityStr} + unit${limitStr}${stopStr})`;
           result.splice(currentIndex + 1, 0, alertLine);
           insertedLines++;
         }
