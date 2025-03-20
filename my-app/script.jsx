@@ -159,7 +159,6 @@ const TradingCodeProcessor = () => {
         'symbol      = input.string("", "Symbol", tooltip = "The receiving exchange\'s market for your command. If left blank, this will default to the current symbol (ex: BTCUSD)", group = "Syntax Builder")',
         'quantity    = input.float(5, "Order Size", group = "Syntax Builder", minval = 0, tooltip = "Used only if no quantity is provided in strategy.entry/order parameters. Match this to the strategy order size.")',
         'unitType    = input.string("% of equity", "Unit Type", options = ["% of equity","Contracts","Currency"], group = "Syntax Builder", tooltip = "Match this to the strategy order type.")',
-        'pyramiding  = input.integer(1, "Pyramiding", minval = 1, group = "Syntax Builder", tooltip = "Number of concurrent positions allowed. Match this to the strategy order type.")'
       );
     } else if (version === 4) {
       codeBlocks.push(
@@ -185,7 +184,6 @@ const TradingCodeProcessor = () => {
         'symbol      = input("", "Symbol", input.string, tooltip = "The receiving exchange\'s market for your command. If left blank, this will default to the current symbol (ex: BTCUSD)", group = "Syntax Builder")',
         'quantity    = input(5, "Order Size", input.integer, group = "Syntax Builder", minval = 0, tooltip = "Used only if no quantity is provided in strategy.entry/order parameters. Match this to the strategy order size.")',
         'unitType    = input("% of equity", "Unit Type", input.string, options = ["% of equity","Contracts","Currency"], group = "Syntax Builder", tooltip = "Match this to the strategy order type.")',
-        'pyramiding  = input(1, "Pyramiding", input.integer, minval = 1, group = "Syntax Builder", tooltip = "Number of concurrent positions allowed. Match this to the strategy order type.")'
       );
     }
     
@@ -252,11 +250,23 @@ const TradingCodeProcessor = () => {
     const idEntries = new Array(lines.length).fill(null);
     const idExits = new Array(lines.length).fill(null);
     const idCloses = new Array(lines.length).fill(null);
+    const commentCloses = new Array(lines.length).fill(null);
+    const qtyCloses = new Array(lines.length).fill(null);
+    const qtyPercentCloses = new Array(lines.length).fill(null);
+    const immediatelyCloses = new Array(lines.length).fill(null);
+    const whenCloseAlls = new Array(lines.length).fill(null);
+    const commentCloseAlls = new Array(lines.length).fill(null);
     const directions = new Array(lines.length).fill(null);
     const quantities = new Array(lines.length).fill(null);
     const limits = new Array(lines.length).fill(null);
     const stops = new Array(lines.length).fill(null);
-    const whenEntries = new Array(lines.length).fill(null);
+    const ocaNames = new Array(lines.length).fill(null);
+    const ocaTypes = new Array(lines.length).fill(null);
+    const comments = new Array(lines.length).fill(null);
+    const whenEntries = new Array(lines.length).fill(null); 
+    const fromEntries = new Array(lines.length).fill(null);
+    const exitQuantities = new Array(lines.length).fill(null);
+    const qtyPercentages = new Array(lines.length).fill(null);
     const exitTPs = new Array(lines.length).fill(null);
     const exitLimits = new Array(lines.length).fill(null);
     const exitLosses = new Array(lines.length).fill(null);
@@ -264,16 +274,27 @@ const TradingCodeProcessor = () => {
     const exitTrails = new Array(lines.length).fill(null);
     const exitTrailPoints = new Array(lines.length).fill(null);
     const exitTrailOffsets = new Array(lines.length).fill(null);
+    const exitOcaNames = new Array(lines.length).fill(null);
+    const exitComments = new Array(lines.length).fill(null);
     const whenExits = new Array(lines.length).fill(null);
-    
+    const commentProfits = new Array(lines.length).fill(null);
+    const commentLosses = new Array(lines.length).fill(null);
+    const commentTrailings = new Array(lines.length).fill(null);
+    const alertProfits = new Array(lines.length).fill(null);
+    const alertLosses = new Array(lines.length).fill(null);
+    const alertTrailings = new Array(lines.length).fill(null);
+    const idCancels = new Array(lines.length).fill(null);
+    const whenCancels = new Array(lines.length).fill(null);
+    const whenCancelAlls = new Array(lines.length).fill(null);
+
     // First, analyze the code and extract parameters
     if (version === 4 || version === 5 || version === 6) {
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
-        
+
         // Analyze strategy.entry and strategy.order calls
         if (line.includes('strategy.entry(') || line.includes('strategy.order(')) {
-
+          const params = extractParameters(line);
           // Extract id entries
           let idEntry = null;
           const idMatch = line.match(/id\s*=\s*([^,)]+)/);
@@ -281,7 +302,6 @@ const TradingCodeProcessor = () => {
             idEntry = trimAllSpaces(idMatch[1]);
           } else {
             // Extract first parameter as id if it doesn't contain '='
-            const params = extractParameters(line);
             if (params.length >= 1 && !params[0].includes('=')) {
               idEntry = trimAllSpaces(params[0]);
             }
@@ -293,12 +313,11 @@ const TradingCodeProcessor = () => {
             let direction = null;
             const directionMatch = line.match(/long\s*=\s*([^,)]+)/);
             if (directionMatch) {
-              direction = trimAllSpaces(directionMatch[1]);
+              direction = directionMatch[1].trim();
             } else {
               // Extract second parameter as direction
-              const params = extractParameters(line);
-              if (params.length >= 2) {
-                direction = trimAllSpaces(params[1]);
+                if (params.length >= 2) {
+                direction = params[1].trim();
               }
             }
             directions[i] = direction;
@@ -307,12 +326,11 @@ const TradingCodeProcessor = () => {
             let direction = null;
             const directionMatch = line.match(/direction\s*=\s*([^,)]+)/);
             if (directionMatch) {
-              direction = trimAllSpaces(directionMatch[1]);
+              direction = directionMatch[1].trim();
             } else {
               // Extract second parameter as direction
-              const params = extractParameters(line);
               if (params.length >= 2) {
-                direction = trimAllSpaces(params[1]);
+                direction = params[1].trim();
               }
             }
             directions[i] = direction;
@@ -322,12 +340,11 @@ const TradingCodeProcessor = () => {
           let quantity = null;
           const quantityMatch = line.match(/qty\s*=\s*([^,)]+)/);
           if (quantityMatch) {
-            quantity = trimAllSpaces(quantityMatch[1]);
+            quantity = quantityMatch[1].trim();
           } else {
             // Extract third parameter as quantity if it doesn't contain '='
-            const params = extractParameters(line);
             if (params.length >= 3 && !params[2].includes('=')) {
-              quantity = trimAllSpaces(params[2]);
+              quantity = params[2].trim();
             }
           }
           quantities[i] = quantity;
@@ -336,12 +353,11 @@ const TradingCodeProcessor = () => {
           let limit = null;
           const limitMatch = line.match(/limit\s*=\s*([^,)]+)/);
           if (limitMatch) {
-            limit = trimAllSpaces(limitMatch[1]);
+            limit = limitMatch[1].trim();
           } else {
             // Extract fourth parameter as limit if it doesn't contain '='
-            const params = extractParameters(line);
             if (params.length >= 4 && !params[3].includes('=')) {
-              limit = trimAllSpaces(params[3]);
+              limit = params[3].trim();
             }
           }
           limits[i] = limit;
@@ -350,28 +366,65 @@ const TradingCodeProcessor = () => {
           let stop = null;
           const stopMatch = line.match(/stop\s*=\s*([^,)]+)/);
           if (stopMatch) {
-            stop = trimAllSpaces(stopMatch[1]);
+            stop = stopMatch[1].trim();
           } else {
             // Extract fifth parameter as stop if it doesn't contain '='
-            const params = extractParameters(line);
             if (params.length >= 5 && !params[4].includes('=')) {
-              stop = trimAllSpaces(params[4]);
+              stop = params[4].trim();
             }
           }
           stops[i] = stop;
+
+          // Extract oca_name
+          let ocaName = null;
+          const ocaNameMatch = line.match(/oca_name\s*=\s*([^,)]+)/);
+          if (ocaNameMatch) {
+            ocaName =  ocaNameMatch[1].trim();
+          } else {
+            // Extract sixth parameter as oca_name if it doesn't contain '='
+            if (params.length >= 6 && !params[5].includes('=')) {
+              ocaName = params[5].trim();
+            }
+          }
+          ocaNames[i] = ocaName;
+
+          // Extract oca_type
+          let ocaType = null;
+          const ocaTypeMatch = line.match(/oca_type\s*=\s*([^,)]+)/);
+          if (ocaTypeMatch) {
+            ocaType = ocaTypeMatch[1].trim();
+          } else {
+            // Extract seventh parameter as oca_type if it doesn't contain '='
+            if (params.length >= 7 && !params[6].includes('=')) {
+              ocaType = params[6].trim();
+            }
+          }
+          ocaTypes[i] = ocaType;
+
+          // Extract comment
+          let comment = null;
+          const commentMatch = line.match(/comment\s*=\s*([^,)]+)/);
+          if (commentMatch) {
+            comment = commentMatch[1].trim();
+          } else {
+            // Extract eighth parameter as comment if it doesn't contain '='
+            if (params.length >= 8 && !params[7].includes('=')) {
+              comment = params[7].trim();
+            }
+          }
+          comments[i] = comment;
 
           // Extract when entry
           if(version === 4){
             let whenEntry = null;
             const whenMatch = line.match(/when\s*=\s*([^,)]+)/);
             if(whenMatch){
-              whenEntry = trimAllSpaces(whenMatch[1]);
+              whenEntry = whenMatch[1].trim();
             }
             else{
               // Extract ninth parameter as when if it doesn't contain '='
-              const params = extractParameters(line);
               if (params.length >= 9 && !params[8].includes('=')){
-                whenEntry = trimAllSpaces(params[8]);
+                whenEntry = params[8].trim();
               }
             }
             whenEntries[i] = whenEntry;
@@ -380,6 +433,7 @@ const TradingCodeProcessor = () => {
         
         // Analyze strategy.exit calls
         if (line.includes('strategy.exit(')) {
+          const params = extractParameters(line);
           // Extract id exits
           let idExit = null;
           const idMatch = line.match(/id\s*=\s*([^,)]+)/);
@@ -387,23 +441,60 @@ const TradingCodeProcessor = () => {
             idExit = trimAllSpaces(idMatch[1]);
           } else {
             // Extract third parameter as quantity if it doesn't contain '='
-            const params = extractParameters(line);
             if (params.length >= 1 && !params[0].includes('=')) {
               idExit = trimAllSpaces(params[0]);
             }
           }
           idExits[i] = idExit;
 
+          // Extract from_entry
+          let fromEntry = null;
+          const fromEntryMatch = line.match(/from_entry\s*=\s*([^,)]+)/);
+          if (fromEntryMatch) {
+            fromEntry = fromEntryMatch[1].trim();
+          } else {
+            // Extract third parameter as quantity if it doesn't contain '='
+            if (params.length >= 2 && !params[1].includes('=')) {
+              fromEntry = params[1].trim();
+            }
+          }
+          fromEntries[i] = fromEntry;
+
+          // Extract qty
+          let exitQty = null;
+          const qtyMatch = line.match(/qty\s*=\s*([^,)]+)/);
+          if (qtyMatch) {
+            exitQty = qtyMatch[1].trim();
+          } else {
+            // Extract third parameter as quantity if it doesn't contain '='
+            if (params.length >= 3 && !params[2].includes('=')) {
+              exitQty = params[2].trim();
+            }
+          }
+          exitQuantities[i] = exitQty;
+
+          // Extract qty_percent
+          let qtyPercent = null;
+          const qtyPercentMatch = line.match(/qty_percent\s*=\s*([^,)]+)/);
+          if (qtyPercentMatch) {
+            qtyPercent = qtyPercentMatch[1].trim();
+          } else {
+            // Extract third parameter as quantity if it doesn't contain '='
+            if (params.length >= 4 && !params[3].includes('=')) {
+              qtyPercent = params[3].trim();
+            }
+          }
+          qtyPercentages[i] = qtyPercent;
+
           // Extract profit
           let exitTP = null;
           const profitMatch = line.match(/profit\s*=\s*([^,)]+)/);
           if (profitMatch) {
-            exitTP = trimAllSpaces(profitMatch[1]);
+            exitTP = profitMatch[1].trim();
           } else {
             // Extract fifth parameter as profit if it doesn't contain '='
-            const params = extractParameters(line);
             if (params.length >= 5 && !params[4].includes('=')) {
-              exitTP = trimAllSpaces(params[4]);
+              exitTP = params[4].trim();
             }
           }
           exitTPs[i] = exitTP;
@@ -412,12 +503,11 @@ const TradingCodeProcessor = () => {
           let exitLimit = null;
           const limitMatch = line.match(/limit\s*=\s*([^,)]+)/);
           if (limitMatch) {
-            exitLimit = trimAllSpaces(limitMatch[1]);
+            exitLimit = limitMatch[1].trim();
           } else {
             // Extract sixth parameter as limit if it doesn't contain '='
-            const params = extractParameters(line);
             if (params.length >= 6 && !params[5].includes('=')) {
-              exitLimit = trimAllSpaces(params[5]);
+              exitLimit = params[5].trim();
             }
           }
           exitLimits[i] = exitLimit;
@@ -426,12 +516,11 @@ const TradingCodeProcessor = () => {
           let exitLoss = null;
           const lossMatch = line.match(/loss\s*=\s*([^,)]+)/);
           if (lossMatch) {
-            exitLoss = trimAllSpaces(lossMatch[1]);
+            exitLoss = lossMatch[1].trim();
           } else {
             // Extract seventh parameter as loss if it doesn't contain '='
-            const params = extractParameters(line);
             if (params.length >= 7 && !params[6].includes('=')) {
-              exitLoss = trimAllSpaces(params[6]);
+              exitLoss = params[6].trim();
             }
           }
           exitLosses[i] = exitLoss;
@@ -440,12 +529,11 @@ const TradingCodeProcessor = () => {
           let exitStop = null;
           const stopMatch = line.match(/stop\s*=\s*([^,)]+)/);
           if (stopMatch) {
-            exitStop = trimAllSpaces(stopMatch[1]);
+            exitStop = stopMatch[1].trim();
           } else {
             // Extract eighth parameter as stop if it doesn't contain '='
-            const params = extractParameters(line);
             if (params.length >= 8 && !params[7].includes('=')) {
-              exitStop = trimAllSpaces(params[7]);
+              exitStop = params[7].trim();
             }
           }
           exitStops[i] = exitStop;
@@ -454,12 +542,11 @@ const TradingCodeProcessor = () => {
           let exitTrail = null;
           const trailPriceMatch = line.match(/trail_price\s*=\s*([^,)]+)/);
           if (trailPriceMatch) {
-            exitTrail = trimAllSpaces(trailPriceMatch[1]);
+            exitTrail = trailPriceMatch[1].trim();
           } else {
             // Extract ninth parameter as trail_price if it doesn't contain '='
-            const params = extractParameters(line);
             if (params.length >= 9 && !params[8].includes('=')) {
-              exitTrail = trimAllSpaces(params[8]);
+              exitTrail = params[8].trim();
             }
           }
           exitTrails[i] = exitTrail;
@@ -468,12 +555,11 @@ const TradingCodeProcessor = () => {
           let trailPoints = null;
           const trailPointsMatch = line.match(/trail_points\s*=\s*([^,)]+)/);
           if (trailPointsMatch) {
-            trailPoints = trimAllSpaces(trailPointsMatch[1]);
+            trailPoints = trailPointsMatch[1].trim();
           } else {
             // Extract tenth parameter as trail_points if it doesn't contain '='
-            const params = extractParameters(line);
             if (params.length >= 10 && !params[9].includes('=')) {
-              trailPoints = trimAllSpaces(params[9]);
+              trailPoints = params[9].trim();
             }
           }
           exitTrailPoints[i] = trailPoints;
@@ -482,54 +568,332 @@ const TradingCodeProcessor = () => {
           let trailOffset = null;
           const trailOffsetMatch = line.match(/trail_offset\s*=\s*([^,)]+)/);
           if (trailOffsetMatch) {
-            trailOffset = trimAllSpaces(trailOffsetMatch[1]);
+            trailOffset = trailOffsetMatch[1].trim();
           } else {
             // Extract eleventh parameter as trail_offset if it doesn't contain '='
-            const params = extractParameters(line);
             if (params.length >= 11 && !params[10].includes('=')) {
-              trailOffset = trimAllSpaces(params[10]);
+              trailOffset = params[10].trim();
             }
           }
           exitTrailOffsets[i] = trailOffset;
+
+          // Extract oca_name
+          let ocaName = null;
+          const ocaNameMatch = line.match(/oca_name\s*=\s*([^,)]+)/);
+          if (ocaNameMatch) {
+            ocaName = ocaNameMatch[1].trim();
+          } else {
+            // Extract eleventh parameter as trail_offset if it doesn't contain '='
+            if (params.length >= 12 && !params[11].includes('=')) {
+              ocaName = params[11].trim();
+            }
+          }
+          exitOcaNames[i] = ocaName;
+
+          // Extract comment
+          let comment = null;
+          const commentMatch = line.match(/comment\s*=\s*([^,)]+)/);
+          if (commentMatch) {
+            comment = commentMatch[1].trim();
+          } else {
+            // Extract twelfth parameter as comment if it doesn't contain '='
+            if (params.length >= 13 && !params[12].includes('=')) {
+              comment = params[12].trim();
+            }
+          }
+          exitComments[i] = comment;
 
           // Extract when exit
           if(version === 4){
             let whenExit = null;
             const whenMatch = line.match(/when\s*=\s*([^,)]+)/);
             if(whenMatch){
-              whenExit = trimAllSpaces(whenMatch[1]);
+              whenExit = whenMatch[1].trim();
             }
             else{
-              // Extract ninth parameter as when if it doesn't contain '='
-              const params = extractParameters(line);
-              if (params.length >= 9 && !params[8].includes('=')){
-                whenExit = trimAllSpaces(params[8]);
+              // Extract thirteenth parameter as when if it doesn't contain '='
+              if (params.length >= 14 && !params[13].includes('=')){
+                whenExit = params[13].trim();
               }
             }
             whenExits[i] = whenExit;
+          }
+
+          if(version === 5 || version === 6){
+
+            // Extract comment_profit
+            let commentProfit = null;
+            const commentProfitMatch = line.match(/comment_profit\s*=\s*([^,)]+)/);
+            if(commentProfitMatch){
+              commentProfit = commentProfitMatch[1].trim();
+            }
+            else{
+              // Extract fourteenth parameter as comment_profit if it doesn't contain '='
+              if (params.length >= 15 && !params[14].includes('=')){
+                commentProfit = params[14].trim();
+              }
+            }
+            commentProfits[i] = commentProfit;
+
+            // Extract comment_loss
+            let commentLoss = null;
+            const commentLossMatch = line.match(/comment_loss\s*=\s*([^,)]+)/);
+            if(commentLossMatch){
+              commentLoss = commentLossMatch[1].trim();
+            }
+            else{
+              // Extract fifteenth parameter as comment_loss if it doesn't contain '='
+              if (params.length >= 16 && !params[15].includes('=')){
+                commentLoss = params[15].trim();
+              }
+            }
+            commentLosses[i] = commentLoss;
+
+            // Extract comment_trailing
+            let commentTrailing = null;
+            const commentTrailingMatch = line.match(/comment_trailing\s*=\s*([^,)]+)/);
+            if(commentTrailingMatch){
+              commentTrailing = commentTrailingMatch[1].trim();
+            } 
+            else{
+              // Extract sixteenth parameter as comment_trailing if it doesn't contain '='
+              if (params.length >= 17 && !params[16].includes('=')){
+                commentTrailing = params[16].trim();
+              }
+            }
+            commentTrailings[i] = commentTrailing;
+
+            // Extract alert_profit
+            let alertProfit = null;
+            const alertProfitMatch = line.match(/alert_profit\s*=\s*([^,)]+)/);
+            if(alertProfitMatch){
+              alertProfit = alertProfitMatch[1].trim();
+            } 
+            else{
+              // Extract seventeenth parameter as alert_profit if it doesn't contain '='
+              if (params.length >= 18 && !params[17].includes('=')){
+                alertProfit = params[17].trim();
+              }
+            }
+            alertProfits[i] = alertProfit;
+
+            // Extract alert_loss
+            let alertLoss = null;
+            const alertLossMatch = line.match(/alert_loss\s*=\s*([^,)]+)/);
+            if(alertLossMatch){
+              alertLoss = alertLossMatch[1].trim(); 
+            }
+            else{
+              // Extract eighteenth parameter as alert_loss if it doesn't contain '='
+              if (params.length >= 19 && !params[18].includes('=')){
+                alertLoss = params[18].trim();
+              }   
+            }
+            alertLosses[i] = alertLoss;
+
+            // Extract alert_trailing
+            let alertTrailing = null;
+            const alertTrailingMatch = line.match(/alert_trailing\s*=\s*([^,)]+)/);
+            if(alertTrailingMatch){
+              alertTrailing = alertTrailingMatch[1].trim();
+            }
+            else{
+              // Extract nineteenth parameter as alert_trailing if it doesn't contain '='
+              if (params.length >= 20 && !params[19].includes('=')){
+                alertTrailing = params[19].trim();
+              }
+            }
+            alertTrailings[i] = alertTrailing;
           }
         }
 
         // Analyze strategy close calls
         if(line.includes('strategy.close(')){
+          const params = extractParameters(line);
+          const versionDifference = version === 4 ? 1 : 0;
+
           // Extract id closes
           let idClose = null;
           const idMatch = line.match(/id\s*=\s*([^,)]+)/);
           if (idMatch) {
             idClose = trimAllSpaces(idMatch[1]);
           } else {
-            // Extract third parameter as quantity if it doesn't contain '='
-            const params = extractParameters(line);
+            // Extract first parameter as id if it doesn't contain '='
             if (params.length >= 1 && !params[0].includes('=')) {
               idClose = trimAllSpaces(params[0]);
             }
           }
           idCloses[i] = idClose;
+
+          if(version === 4){
+            // Extract when closes
+            let whenClose = null;
+            const whenMatch = line.match(/when\s*=\s*([^,)]+)/);
+            if (whenMatch) {
+              whenClose = whenMatch[1].trim();
+            }
+            else{
+              // Extract second parameter as when if it doesn't contain '='
+              if (params.length >= 2 && !params[1].includes('=')) {
+                whenClose = params[1].trim();
+              }
+            }
+            whenCloses[i] = whenClose;
+          }
+          
+
+          // Extract comment closes
+            let commentClose = null;
+            const commentMatch = line.match(/comment\s*=\s*([^,)]+)/);
+            if (commentMatch) {
+              commentClose = commentMatch[1].trim();
+            } else {
+              // Extract second parameter as comment if it doesn't contain '='
+              if (params.length >= 2 + versionDifference && !params[1 + versionDifference].includes('=')) {
+                commentClose = params[1 + versionDifference].trim();
+              }
+            }
+            commentCloses[i] = commentClose;
+
+
+          // Extract qty closes
+          let qtyClose = null;
+          const qtyMatch = line.match(/qty\s*=\s*([^,)]+)/);
+          if (qtyMatch) {
+            qtyClose = qtyMatch[1].trim();
+          } else {
+            // Extract third parameter as quantity if it doesn't contain '='
+            if (params.length >= 3 + versionDifference && !params[2 + versionDifference].includes('=')) {
+              qtyClose = params[2 + versionDifference].trim();
+            }
+          }
+          qtyCloses[i] = qtyClose;
+
+          // Extract qty_percent closes
+          let qtyPercentClose = null;
+          const qtyPercentMatch = line.match(/qty_percent\s*=\s*([^,)]+)/);
+          if (qtyPercentMatch) {
+            qtyPercentClose = qtyPercentMatch[1].trim();
+          } else {
+            // Extract fourth parameter as qty_percent if it doesn't contain '='
+            if (params.length >= 4 + versionDifference && !params[3 + versionDifference].includes('=')) {
+              qtyPercentClose = params[3 + versionDifference].trim();
+            }
+          }
+          qtyPercentCloses[i] = qtyPercentClose;
+          
+          if(version === 5){
+            // Extract immediately
+            let immediately = null;
+            const immediatelyMatch = line.match(/immediately\s*=\s*([^,)]+)/);
+            if (immediatelyMatch) {
+              immediately = immediatelyMatch[1].trim();
+            } else {
+              // Extract sixth parameter as immediately if it doesn't contain '='
+              if (params.length >= 6 && !params[5].includes('=')) {
+                immediately = params[5].trim();
+              }
+            }
+            immediatelyCloses[i] = immediately;
+          }
+        }
+
+        // Analyze strategy close_all calls
+        if(line.includes('strategy.close_all(')){
+          const params = extractParameters(line);
+          const versionDifference = version === 4 ? 1 : 0;
+
+          // Extract when close alls
+          if(version === 4){
+            let whenCloseAll = null;
+            const whenMatch = line.match(/when\s*=\s*([^,)]+)/);
+            if (whenMatch) {
+              whenCloseAll = whenMatch[1].trim();
+            } else {
+              // Extract first parameter as when if it doesn't contain '='
+              if (params.length >= 1 && !params[0].includes('=')) {
+                whenCloseAll = params[0].trim();
+              }
+            }
+            whenCloseAlls[i] = whenCloseAll;
+          }
+          
+          // Extract comment close alls
+          let commentCloseAll = null;
+          const commentMatch = line.match(/comment\s*=\s*([^,)]+)/);
+          if (commentMatch) {
+            commentCloseAll = commentMatch[1].trim();
+          } else {
+            // Extract second parameter as comment if it doesn't contain '='
+            if (params.length >= 1 + versionDifference && !params[0 + versionDifference].includes('=')) {
+              commentCloseAll = params[0 + versionDifference].trim();
+            }
+          }
+          commentCloseAlls[i] = commentCloseAll;
+          
+        }
+
+        // Analyze strategy cancel calls
+        if(line.includes('strategy.cancel(')){
+          const params = extractParameters(line);
+          
+          // Extract id cancels
+          let idCancel = null;
+          const idMatch = line.match(/id\s*=\s*([^,)]+)/);
+          if (idMatch) {
+            idCancel = trimAllSpaces(idMatch[1]);
+          }
+          else{
+            // Extract first parameter as id if it doesn't contain '='
+            if (params.length >= 1 && !params[0].includes('=')) {
+              idCancel = trimAllSpaces(params[0]);
+            }
+          }
+          idCancels[i] = idCancel;
+
+          // Extract when cancels
+          if(version === 4){
+            let whenCancel = null;
+            const whenMatch = line.match(/when\s*=\s*([^,)]+)/);
+            if (whenMatch) {
+              whenCancel = whenMatch[1].trim();
+            }
+            else{
+              // Extract second parameter as when if it doesn't contain '='
+              if (params.length >= 2 && !params[1].includes('=')) {
+                whenCancel = params[1].trim();
+              }
+            }
+            whenCancels[i] = whenCancel;
+          }
+
+        }
+
+        // Analyze strategy cancel_all calls
+        if(line.includes('strategy.cancel_all(')){
+          const params = extractParameters(line);
+          
+          // Extract when cancel alls
+          if(version === 4){
+            let whenCancelAll = null;
+            const whenMatch = line.match(/when\s*=\s*([^,)]+)/);
+            if (whenMatch) {
+              whenCancelAll = whenMatch[1].trim();
+            }
+            else{
+              // Extract first parameter as when if it doesn't contain '='
+              if (params.length >= 1 && !params[0].includes('=')) {
+                whenCancelAll = params[0].trim();
+              }
+            }
+            whenCancelAlls[i] = whenCancelAll;
+          }
+
         }
       }
     }
     
-    // Now, add the alert statements
+    // Now, change the strategy lines
     const result = [...lines];
     let insertedLines = 0;
     
@@ -538,7 +902,7 @@ const TradingCodeProcessor = () => {
       const currentIndex = i + insertedLines;
       const tostringPrefix = version === 4 ? "tostring" : "str.tostring";
       
-      // Add alerts after strategy.entry and strategy.order
+      // Change strategy.entry and strategy.order lines
       if (line.includes('strategy.entry(') || line.includes('strategy.order(')) {
         const indentation = getIndentation(line);
         const id = idEntries[i];
@@ -546,9 +910,10 @@ const TradingCodeProcessor = () => {
         const quantity = quantities[i];
         const limit = limits[i];
         const stop = stops[i];
+        const ocaName = ocaNames[i];
+        const ocaType = ocaTypes[i];
+        const comment = comments[i];
         const when = whenEntries[i];
-        
-        const whenCondition = when ? `if strategy.opentrades < pyramiding ${when}` : "if strategy.opentrades < pyramiding";
         
         if (direction) {
           // Determine book value based on direction
@@ -564,17 +929,29 @@ const TradingCodeProcessor = () => {
           const orderType = limit ? "t=limit" : "t=market";
           const limitStr = limit ? ` + amp + " px=" + ${tostringPrefix}(${limit})` : "";
           const stopStr = stop ? ` + amp + " fsl=" + ${tostringPrefix}(${stop})` : "";
-          
-          const alertLine = `${indentation}${whenCondition}\n${indentation}    alert(alertMode + "e=" + exchange + " " + account + " " + ${idStr}"s=" + symbol + " " + "${book}" + " " + "${orderType}" + " "${quantityStr} + unit${limitStr}${stopStr})`;
-          result.splice(currentIndex + 1, 0, alertLine);
-          insertedLines++;
+
+          const entryContents = version === 4 ? `${id?`id=${id},`:""}${direction?`long=${direction},`:""}${quantity?`qty=${quantity},`:""}${limit?`limit=${limit},`:""}${stop?`stop=${stop},`:""}${ocaName?`oca_name=${ocaName},`:""}${ocaType?`oca_type=${ocaType},`:""}${comment?`comment=${comment},`:""}${when?`when=${when},`:""}` : `${id?`id=${id},`:""}${direction?`direction=${direction},`:""}${quantity?`qty=${quantity},`:""}${limit?`limit=${limit},`:""}${stop?`stop=${stop},`:""}${ocaName?`oca_name=${ocaName},`:""}${ocaType?`oca_type=${ocaType},`:""}${comment?`comment=${comment},`:""}`;  
+          const alertMessage = `alertMode + "e=" + exchange + " " + account + " " + ${idStr}"s=" + symbol + " " + "${book}" + " " + "${orderType}" + " "${quantityStr} + unit${limitStr}${stopStr}`;
+          const entryLine = `${indentation}strategy.entry(${entryContents}alert_message=${alertMessage})`;
+          const orderLine = `${indentation}strategy.order(${entryContents}alert_message=${alertMessage})`;
+          if (line.includes('strategy.entry(')){
+            result.splice(currentIndex, 1, entryLine);
+            insertedLines++;
+          }
+          else{
+            result.splice(currentIndex, 1, orderLine);
+            insertedLines++;
+          }
         }
       }
       
-      // Add alerts after strategy.exit
+      // Change strategy.exit lines
       if (line.includes('strategy.exit(')) {
         const indentation = getIndentation(line);
         const id = idExits[i];
+        const fromEntry = fromEntries[i];
+        const qty = exitQuantities[i];
+        const qtyPercent = qtyPercentages[i];
         const exitTP = exitTPs[i];
         const exitLimit = exitLimits[i];
         const exitLoss = exitLosses[i];
@@ -582,14 +959,21 @@ const TradingCodeProcessor = () => {
         const trailPoints = exitTrailPoints[i];
         const trailPrice = exitTrails[i];
         const trailOffset = exitTrailOffsets[i];
+        const ocaName = exitOcaNames[i];
+        const comment = exitComments[i];
+        const commentProfit = commentProfits[i];
+        const commentLoss = commentLosses[i];
+        const commentTrailing = commentTrailings[i];
+        const alertProfit = alertProfits[i];
+        const alertLoss = alertLosses[i];
+        const alertTrailing = alertTrailings[i];
         const when = whenExits[i];
-        
-        const whenCondition = when ? `if ${when}` : "";
         
         if (exitTP || exitLimit || exitLoss || exitStop || trailPoints || trailPrice || trailOffset) {
           let takeProfit = "";
           let stopLoss = "";
           const idStr = id ? `"id=" + ${tostringPrefix}(${id}) + " " + ` : "";
+          const qtyStr = qty ? ` + "q=" + ${tostringPrefix}(${qty})` : qtyPercent ? ` + "q=" + ${tostringPrefix}(${qtyPercent}) + "%"` : "";
           
           if (exitTP && !exitLimit) {
             takeProfit = ` + amp + " ftp=" + ${tostringPrefix}(${exitTP}*syminfo.mintick)`;
@@ -617,26 +1001,76 @@ const TradingCodeProcessor = () => {
           }
           
           if (takeProfit || stopLoss || trailingStopPrice || trailingStopActivation) {
-            const alertLine = when ? `${indentation}${whenCondition}\n${indentation}    alert(alertMode + "e=" + exchange + " " + account + " " + ${idStr}"s=" + symbol${takeProfit}${stopLoss}${trailingStopPrice}${trailingStopActivation})` : `${indentation}alert(alertMode + "e=" + exchange + " " + account + " " + ${idStr}"s=" + symbol${takeProfit}${stopLoss}${trailingStopPrice}${trailingStopActivation})`;
-            result.splice(currentIndex + 1, 0, alertLine);
+            const alertMessage = `alertMode + "e=" + exchange + " " + account + " " + ${idStr}"s=" + symbol${qtyStr}${takeProfit}${stopLoss}${trailingStopPrice}${trailingStopActivation}`;
+            const exitContents = version === 4 ? `${id?`id=${id},`:""}${fromEntry?`from_entry=${fromEntry},`:""}${qty?`qty=${qty},`:""}${qtyPercent?`qty_percent=${qtyPercent},`:""}${exitTP?`profit=${exitTP},`:""}${exitLimit?`limit=${exitLimit},`:""}${exitLoss?`loss=${exitLoss},`:""}${exitStop?`stop=${exitStop},`:""}${trailPrice?`trail_price=${trailPrice},`:""}${trailPoints?`trail_points=${trailPoints},`:""}${trailOffset?`trail_offset=${trailOffset},`:""}${ocaName?`oca_name=${ocaName},`:""}${comment?`comment=${comment},`:""}${when?`when=${when},`:""}` : `${id?`id=${id},`:""}${fromEntry?`from_entry=${fromEntry},`:""}${qty?`qty=${qty},`:""}${qtyPercent?`qty_percent=${qtyPercent},`:""}${exitTP?`profit=${exitTP},`:""}${exitLimit?`limit=${exitLimit},`:""}${exitLoss?`loss=${exitLoss},`:""}${exitStop?`stop=${exitStop},`:""}${trailPrice?`trail_price=${trailPrice},`:""}${trailPoints?`trail_points=${trailPoints},`:""}${trailOffset?`trail_offset=${trailOffset},`:""}${ocaName?`oca_name=${ocaName},`:""}${comment?`comment=${comment},`:""}${commentProfit?`comment_profit=${commentProfit},`:""}${commentLoss?`comment_loss=${commentLoss},`:""}${commentTrailing?`comment_trailing=${commentTrailing},`:""}${alertProfit?`alert_profit=${alertProfit},`:""}${alertLoss?`alert_loss=${alertLoss},`:""}${alertTrailing?`alert_trailing=${alertTrailing},`:""}`;
+            const exitLine = `${indentation}strategy.exit(${exitContents}alert_message=${alertMessage})`;
+            result.splice(currentIndex, 1, exitLine);
             insertedLines++;
           }
         }
       }
       
-      // Add alerts after strategy.close_all and strategy.close
-      if (line.includes('strategy.close_all(') || line.includes('strategy.close(')) {
+      // Change strategy.close lines
+      if (line.includes('strategy.close(')) {
         const id = idCloses[i];
+        const when = whenCloses[i];
+        const comment = commentCloses[i];
+        const qty = qtyCloses[i];
+        const qtyPercent = qtyPercentCloses[i];
+        const immediately = immediatelyCloses[i];
 
-        const idStr = id ? `"id=" + ${tostringPrefix}(${id}) + " " + ` : "";
+        const idStr = id ? ` + "id=" + ${id} + " " + ` : "";
+        const qtyStr = qty ? ` + "q=" + ${tostringPrefix}(${qty})` : qtyPercent ? ` + "q=" + ${tostringPrefix}(${qtyPercent}) + "%"` : "";
         const indentation = getIndentation(line);
-        const alertLine = `${indentation}alert(alertMode + "e=" + exchange + " " + account + " " + ${idStr}"s=" + symbol + " c=position c=order")`;
-        result.splice(currentIndex + 1, 0, alertLine);
+        const alertMessage = `alertMode + "e=" + exchange + " " + account + " "${idStr}"s=" + symbol + " c=position"${qtyStr}`;
+        const closeContents = version === 4 ? `${id?`id=${id},`:""}${when?`when=${when},`:""}${comment?`comment=${comment},`:""}${qty?`qty=${qty},`:""}${qtyPercent?`qty_percent=${qtyPercent},`:""}` : `${id?`id=${id},`:""}${comment?`comment=${comment},`:""}${qty?`qty=${qty},`:""}${qtyPercent?`qty_percent=${qtyPercent},`:""}${immediately?`immediately=${immediately},`:""}`;
+        const closeLine = `${indentation}strategy.close(${closeContents}alert_message=${alertMessage})`;
+        result.splice(currentIndex, 1, closeLine);
         insertedLines++;
       }
+
+      // Change strategy.close_all lines
+      if (line.includes('strategy.close_all(')) {
+        const when = whenCloseAlls[i];
+        const comment = commentCloseAlls[i];
+
+        const alertMessage = `alertMode + "e=" + exchange + " " + account + " " +"s=" + symbol + " c=position"`;
+        const closeAllContents = version === 4 ? `${when?`when=${when},`:""}${comment?`comment=${comment},`:""}` : `${comment?`comment=${comment},`:""}`;
+        const closeAllLine = `${indentation}strategy.close_all(${closeAllContents}alert_message=${alertMessage})`;
+        result.splice(currentIndex, 1, closeAllLine);
+        insertedLines++;
+      }
+
+      // Change strategy.cancel lines
+      if(line.includes('strategy.cancel(')){
+        const indentation = getIndentation(line);
+        const id = idCancels[i];
+        const when = whenCancels[i];
+        const whenCondition = `if(${when})`;
+
+        const idStr = id ? ` + "id=" + ${id} + " " + ` : "";
+        const alertMessage = `alertMode + "e=" + exchange + " " + account + " "${idStr}"s=" + symbol + " c=order"`;
+        const cancelLine = `${when?`${indentation}${whenCondition}\n${indentation}    `:""}alert(${alertMessage})`;
+        result.splice(currentIndex + 1, 0, cancelLine);
+        insertedLines++;
+      }
+
+      // Change strategy.cancel_all lines
+      if(line.includes('strategy.cancel_all(')){
+        const indentation = getIndentation(line);
+        const when = whenCancelAlls[i];
+        const whenCondition = `if(${when})`;
+
+        const alertMessage = `alertMode + "e=" + exchange + " " + account + " " + "s=" + symbol + " c=order"`;
+        const cancelAllLine = `${when?`${indentation}${whenCondition}\n${indentation}    `:""}alert(${alertMessage})`;
+        result.splice(currentIndex + 1, 0, cancelAllLine);
+        insertedLines++;
+      }
+      
     }
     
     return result;
+    
   };
 
   // Helper function to extract parameters from a function call
