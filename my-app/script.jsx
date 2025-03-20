@@ -339,13 +339,12 @@ const TradingCodeProcessor = () => {
           
           // Extract quantity
           let quantity = null;
-          const quantityMatch = line.match(/qty\s*=\s*([^,)]+)/);
-          if (quantityMatch) {
-            quantity = quantityMatch[1].trim();
-          } else {
-            // Extract third parameter as quantity if it doesn't contain '='
-            if (params.length >= 3 && !params[2].includes('=')) {
-              quantity = params[2].trim();
+          for (const param of params) {
+            if (param.startsWith('qty')) {
+              const equalsIndex = param.indexOf('=');
+              if (equalsIndex !== -1) {
+                quantity = param.substring(equalsIndex + 1).trim();
+              }
             }
           }
           quantities[i] = quantity;
@@ -821,15 +820,21 @@ const TradingCodeProcessor = () => {
           
           // Extract comment close alls
           let commentCloseAll = null;
-          const commentMatch = line.match(/comment\s*=\s*([^,)]+)/);
-          if (commentMatch) {
-            commentCloseAll = commentMatch[1].trim();
-          } else {
-            // Extract second parameter as comment if it doesn't contain '='
-            if (params.length >= 1 + versionDifference && !params[0 + versionDifference].includes('=')) {
-              commentCloseAll = params[0 + versionDifference].trim();
+          for (const param of params) {
+            if (param.startsWith('comment')) {
+              // Get everything after the equals sign
+              const equalsIndex = param.indexOf('=');
+              if (equalsIndex !== -1) {
+                commentCloseAll = param.substring(equalsIndex + 1).trim();
+              }
             }
           }
+          
+          // If no named parameter found, use positional parameter logic
+          if (commentCloseAll === null && params.length >= 1 && !params[0].includes('=')) {
+            commentCloseAll = params[0].trim();
+          }
+          
           commentCloseAlls[i] = commentCloseAll;
           
         }
