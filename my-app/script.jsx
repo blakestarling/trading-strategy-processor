@@ -286,6 +286,7 @@ const TradingCodeProcessor = () => {
     const idCancels = new Array(lines.length).fill(null);
     const whenCancels = new Array(lines.length).fill(null);
     const whenCancelAlls = new Array(lines.length).fill(null);
+    const whenCloses = new Array(lines.length).fill(null);
 
     // First, analyze the code and extract parameters
     if (version === 4 || version === 5 || version === 6) {
@@ -1047,7 +1048,7 @@ const TradingCodeProcessor = () => {
         const alertMessage = `alertMode + "e=" + exchange + " " + account + " "${idStr}"s=" + symbol + " c=order"`;
         const cancelLine = `${when?`${indentation}${whenCondition}\n${indentation}    `:""}alert(${alertMessage})`;
         result.splice(currentIndex + 1, 0, cancelLine);
-        insertedLines = when ? insertedLines + 2 : insertedLines + 1;
+        insertedLines++;
       }
 
       // Change strategy.cancel_all lines
@@ -1059,7 +1060,7 @@ const TradingCodeProcessor = () => {
         const alertMessage = `alertMode + "e=" + exchange + " " + account + " " + "s=" + symbol + " c=order"`;
         const cancelAllLine = `${when?`${indentation}${whenCondition}\n${indentation}    `:""}alert(${alertMessage})`;
         result.splice(currentIndex + 1, 0, cancelAllLine);
-        insertedLines = when ? insertedLines + 2 : insertedLines + 1;
+        insertedLines++;
       }
       
     }
