@@ -1010,6 +1010,7 @@ const TradingCodeProcessor = () => {
       
       // Change strategy.close lines
       if (line.includes('strategy.close(')) {
+        const indentation = getIndentation(line);
         const id = idCloses[i];
         const when = whenCloses[i];
         const comment = commentCloses[i];
@@ -1019,7 +1020,6 @@ const TradingCodeProcessor = () => {
 
         const idStr = id ? ` + "id=" + ${id} + " " + ` : "";
         const qtyStr = qty ? ` + "q=" + ${tostringPrefix}(${qty})` : qtyPercent ? ` + "q=" + ${tostringPrefix}(${qtyPercent}) + "%"` : "";
-        const indentation = getIndentation(line);
         const alertMessage = `alertMode + "e=" + exchange + " " + account + " "${idStr}"s=" + symbol + " c=position"${qtyStr}`;
         const closeContents = version === 4 ? `${id?`id=${id},`:""}${when?`when=${when},`:""}${comment?`comment=${comment},`:""}${qty?`qty=${qty},`:""}${qtyPercent?`qty_percent=${qtyPercent},`:""}` : `${id?`id=${id},`:""}${comment?`comment=${comment},`:""}${qty?`qty=${qty},`:""}${qtyPercent?`qty_percent=${qtyPercent},`:""}${immediately?`immediately=${immediately},`:""}`;
         const closeLine = `${indentation}strategy.close(${closeContents}alert_message=${alertMessage})`;
@@ -1028,6 +1028,7 @@ const TradingCodeProcessor = () => {
 
       // Change strategy.close_all lines
       if (line.includes('strategy.close_all(')) {
+        const indentation = getIndentation(line);
         const when = whenCloseAlls[i];
         const comment = commentCloseAlls[i];
 
