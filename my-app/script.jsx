@@ -924,7 +924,7 @@ const TradingCodeProcessor = () => {
             book = "b=short";
           }
 
-          const idStr = id ? `"id=" + ${tostringPrefix}(${id}) + " " + ` : "";
+          const idStr = id ? `"id=" + ${id} + " " + ` : "";
           const quantityStr = quantity ? ` + " q=" + ${tostringPrefix}(${quantity})` : ` + "q=" + ${tostringPrefix}(quantity)`;
           const orderType = limit ? "t=limit" : "t=market";
           const limitStr = limit ? ` + amp + " px=" + ${tostringPrefix}(${limit})` : "";
@@ -936,11 +936,9 @@ const TradingCodeProcessor = () => {
           const orderLine = `${indentation}strategy.order(${entryContents}alert_message=${alertMessage})`;
           if (line.includes('strategy.entry(')){
             result.splice(currentIndex, 1, entryLine);
-            insertedLines++;
           }
           else{
             result.splice(currentIndex, 1, orderLine);
-            insertedLines++;
           }
         }
       }
@@ -972,7 +970,7 @@ const TradingCodeProcessor = () => {
         if (exitTP || exitLimit || exitLoss || exitStop || trailPoints || trailPrice || trailOffset) {
           let takeProfit = "";
           let stopLoss = "";
-          const idStr = id ? `"id=" + ${tostringPrefix}(${id}) + " " + ` : "";
+          const idStr = id ? `"id=" + ${id} + " " + ` : "";
           const qtyStr = qty ? ` + "q=" + ${tostringPrefix}(${qty})` : qtyPercent ? ` + "q=" + ${tostringPrefix}(${qtyPercent}) + "%"` : "";
           
           if (exitTP && !exitLimit) {
@@ -1005,7 +1003,6 @@ const TradingCodeProcessor = () => {
             const exitContents = version === 4 ? `${id?`id=${id},`:""}${fromEntry?`from_entry=${fromEntry},`:""}${qty?`qty=${qty},`:""}${qtyPercent?`qty_percent=${qtyPercent},`:""}${exitTP?`profit=${exitTP},`:""}${exitLimit?`limit=${exitLimit},`:""}${exitLoss?`loss=${exitLoss},`:""}${exitStop?`stop=${exitStop},`:""}${trailPrice?`trail_price=${trailPrice},`:""}${trailPoints?`trail_points=${trailPoints},`:""}${trailOffset?`trail_offset=${trailOffset},`:""}${ocaName?`oca_name=${ocaName},`:""}${comment?`comment=${comment},`:""}${when?`when=${when},`:""}` : `${id?`id=${id},`:""}${fromEntry?`from_entry=${fromEntry},`:""}${qty?`qty=${qty},`:""}${qtyPercent?`qty_percent=${qtyPercent},`:""}${exitTP?`profit=${exitTP},`:""}${exitLimit?`limit=${exitLimit},`:""}${exitLoss?`loss=${exitLoss},`:""}${exitStop?`stop=${exitStop},`:""}${trailPrice?`trail_price=${trailPrice},`:""}${trailPoints?`trail_points=${trailPoints},`:""}${trailOffset?`trail_offset=${trailOffset},`:""}${ocaName?`oca_name=${ocaName},`:""}${comment?`comment=${comment},`:""}${commentProfit?`comment_profit=${commentProfit},`:""}${commentLoss?`comment_loss=${commentLoss},`:""}${commentTrailing?`comment_trailing=${commentTrailing},`:""}${alertProfit?`alert_profit=${alertProfit},`:""}${alertLoss?`alert_loss=${alertLoss},`:""}${alertTrailing?`alert_trailing=${alertTrailing},`:""}`;
             const exitLine = `${indentation}strategy.exit(${exitContents}alert_message=${alertMessage})`;
             result.splice(currentIndex, 1, exitLine);
-            insertedLines++;
           }
         }
       }
@@ -1026,7 +1023,6 @@ const TradingCodeProcessor = () => {
         const closeContents = version === 4 ? `${id?`id=${id},`:""}${when?`when=${when},`:""}${comment?`comment=${comment},`:""}${qty?`qty=${qty},`:""}${qtyPercent?`qty_percent=${qtyPercent},`:""}` : `${id?`id=${id},`:""}${comment?`comment=${comment},`:""}${qty?`qty=${qty},`:""}${qtyPercent?`qty_percent=${qtyPercent},`:""}${immediately?`immediately=${immediately},`:""}`;
         const closeLine = `${indentation}strategy.close(${closeContents}alert_message=${alertMessage})`;
         result.splice(currentIndex, 1, closeLine);
-        insertedLines++;
       }
 
       // Change strategy.close_all lines
@@ -1038,7 +1034,6 @@ const TradingCodeProcessor = () => {
         const closeAllContents = version === 4 ? `${when?`when=${when},`:""}${comment?`comment=${comment},`:""}` : `${comment?`comment=${comment},`:""}`;
         const closeAllLine = `${indentation}strategy.close_all(${closeAllContents}alert_message=${alertMessage})`;
         result.splice(currentIndex, 1, closeAllLine);
-        insertedLines++;
       }
 
       // Change strategy.cancel lines
@@ -1052,7 +1047,7 @@ const TradingCodeProcessor = () => {
         const alertMessage = `alertMode + "e=" + exchange + " " + account + " "${idStr}"s=" + symbol + " c=order"`;
         const cancelLine = `${when?`${indentation}${whenCondition}\n${indentation}    `:""}alert(${alertMessage})`;
         result.splice(currentIndex + 1, 0, cancelLine);
-        insertedLines++;
+        insertedLines = when ? insertedLines + 2 : insertedLines + 1;
       }
 
       // Change strategy.cancel_all lines
@@ -1064,7 +1059,7 @@ const TradingCodeProcessor = () => {
         const alertMessage = `alertMode + "e=" + exchange + " " + account + " " + "s=" + symbol + " c=order"`;
         const cancelAllLine = `${when?`${indentation}${whenCondition}\n${indentation}    `:""}alert(${alertMessage})`;
         result.splice(currentIndex + 1, 0, cancelAllLine);
-        insertedLines++;
+        insertedLines = when ? insertedLines + 2 : insertedLines + 1;
       }
       
     }
