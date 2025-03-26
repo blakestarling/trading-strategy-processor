@@ -40,8 +40,8 @@ A web application that processes TradingView Pine Script strategy code and adds 
 ## Usage Instructions
 
 1. Paste your TradingView Pine Script in the input area
-   a) The script must be a strategy (containing a strategy() function)
-   b) The script must be version 4 or higher
+   - The script must be a strategy (containing a strategy() function)
+   - The script must be version 4 or higher
 2. Click "Process Code" to add AutoView alert syntax
 3. Copy the processed code from the output area
 4. Paste the processed code into a new TradingView script
