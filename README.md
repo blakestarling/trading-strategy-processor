@@ -46,8 +46,9 @@ A web application that processes TradingView Pine Script strategy code and adds 
 3. Copy the processed code from the output area
 4. Paste the processed code into a new TradingView script
 5. Create an alert for the strategy and paste the following into the alert message box:
+
    ```bash
    {{strategy.order.alert_message}}
    ```
-6. Connect your AutoView webhook URL
-7. Profit
+7. Connect your AutoView webhook URL
+8. Profit
